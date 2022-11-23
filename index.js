@@ -17,6 +17,4 @@ await saveFile('./sample_place/aerialPhoto.jpg', satellitePhotoBlob);
 await saveFile('sample_place/mapPhoto.jpg', mapPhotoBlob)
 await saveFile('./sample_place/blurb.txt', place.blurb);
 
-console.log(city.STATES.length);
 console.log(place.blurb);
-console.log(place.blurb.length);

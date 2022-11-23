@@ -60,16 +60,16 @@ export class Place {
         return {
             place_id: randomPlace["place_id"],
             query: query,
-            top_photo_reference: randomPlace["photos"][0]["photo_reference"],
-            top_source: Place.#parseSource(randomPlace["photos"][0]["html_attributions"][0]),
-            rand_photo_reference: placePhotos[randomPhotoIndex]["photo_reference"],
-            rand_source: Place.#parseSource(placePhotos[randomPhotoIndex]["html_attributions"][0]),
             name: randomPlace["name"],
             rating: randomPlace["rating"],
             user_ratings_total: randomPlace["user_ratings_total"],
             formatted_address: randomPlace["formatted_address"],
             lat: randomPlace["geometry"]["location"]["lat"],
-            lng: randomPlace["geometry"]["location"]["lng"]
+            lng: randomPlace["geometry"]["location"]["lng"],
+            top_photo_reference: randomPlace["photos"][0]["photo_reference"],
+            top_source: Place.#parseSource(randomPlace["photos"][0]["html_attributions"][0]),
+            rand_photo_reference: placePhotos[randomPhotoIndex]["photo_reference"],
+            rand_source: Place.#parseSource(placePhotos[randomPhotoIndex]["html_attributions"][0])
         };
     }
 
@@ -91,7 +91,7 @@ export class Place {
                 return responseJSON["result"]["photos"];
             }
             else {
-                throw new Error("Could not receive place data!");
+                throw new Error("Could not receive photo references!");
             }
         }
         catch (error) {
