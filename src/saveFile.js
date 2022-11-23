@@ -1,9 +1,10 @@
 import { writeFile } from 'fs/promises';
 
-export async function saveBlobPhoto(path, blobToSave) {
+export async function saveFile(path, content) {
   try {
-    writeFile(path, blobToSave);
+    writeFile(path, content);
   } catch (err) {
     console.error(err);
   }
 }
+
