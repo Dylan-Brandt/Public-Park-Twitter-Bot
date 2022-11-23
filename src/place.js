@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import {key} from '../keys/key.js';
+import {googleAPIKey} from '../keys/key.js';
 
 export class Place {
 
@@ -24,7 +24,7 @@ export class Place {
 
     static async buildRandomPlace(query, placeType) {
         try {
-            let url = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=" + key + "&query=" + query + "&type=" + placeType;
+            let url = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=" + googleAPIKey + "&query=" + query + "&type=" + placeType;
             let response = await fetch(url, {method: "GET"});
             if(response.ok) {
                 let responseJSON = await response.json();
@@ -72,7 +72,7 @@ export class Place {
     async getPlacePhotoBlob() {
         try {
             let url = "https://maps.googleapis.com/maps/api/place/photo?key="
-            + key
+            + googleAPIKey
             + "&photo_reference=" + this.photo_reference
             + "&maxwidth=1600";
             let response = await fetch(url, {method: "GET", accept: "image/*"});
@@ -95,7 +95,7 @@ export class Place {
         try {
             let coordinates = this.lat + "," + this.lng;
             let url = "https://maps.googleapis.com/maps/api/staticmap?key="
-            + key
+            + googleAPIKey
             + "&center=" + coordinates
             + "&size=500x400&markers=size:small|"+ coordinates
             + "&maptype=satellite&zoom=16&scale=2";

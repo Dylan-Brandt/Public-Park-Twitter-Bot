@@ -1,7 +1,7 @@
 import { TwitterApi } from 'twitter-api-v2';
 import { Place } from './src/place.js';
 import * as city from './src/cities.js';
-import { consumerKey, consumerSecret, accessToken, accessSecret } from '../keys/key.js';
+import { consumerKey, consumerSecret, accessToken, accessSecret } from './keys/key.js';
 
 const userClient = new TwitterApi({
     appKey: consumerKey,
