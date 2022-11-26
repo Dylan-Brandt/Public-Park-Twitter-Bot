@@ -5,16 +5,38 @@ import {saveFile} from './src/saveFile.js';
 var args = process.argv.slice(2);
 
 let randomCity = await city.getRandomCity();
-let place = await Place.buildRandomPlace(randomCity, args[0]);
-let topPhotoBlob = await place.getPlacePhotoBlob(place.top_photo_reference);
-let randomPhotoBlob = await place.getPlacePhotoBlob(place.random_photo_reference);
-let satellitePhotoBlob = await place.getPlaceAerialPhotoBlob("satellite", 16, false);
-let mapPhotoBlob = await place.getPlaceAerialPhotoBlob("roadmap", 6, true);
+try {
+    var randomPlace = await Place.buildRandomPlace(randomCity, args[0]);
+}
+catch (error) {
+    if(error instanceof ReferenceError | error instanceof URIError) { // try again with different query
+        randomCity = await city.getRandomCity();
+        randomPlace = await Place.buildRandomPlace(randomCity, args[0]);
+    }
+    else {
+        console.error(error);
+    }
+    
+}
 
-await saveFile('./sample_place/topPhoto.jpg', topPhotoBlob);
-await saveFile('./sample_place/randomPhoto.jpg', randomPhotoBlob);
-await saveFile('./sample_place/aerialPhoto.jpg', satellitePhotoBlob);
-await saveFile('sample_place/mapPhoto.jpg', mapPhotoBlob)
-await saveFile('./sample_place/blurb.txt', place.blurb);
+let firstPhotoBlob = null;
+let secondPhotoBlob = null;
+let thirdPhotoBlob = null;
+if(randomPlace.firstPhoto) {
+    firstPhotoBlob = await randomPlace.getPlacePhotoBlob(randomPlace.firstPhoto);
+    await saveFile('./sample_place/firstPhoto.jpg', firstPhotoBlob);
+}
+if(randomPlace.secondPhoto) {
+    secondPhotoBlob = await randomPlace.getPlacePhotoBlob(randomPlace.secondPhoto);
+    await saveFile('./sample_place/secondPhoto.jpg', secondPhotoBlob);
+}
+if(randomPlace.thirdPhoto) {
+    thirdPhotoBlob = await randomPlace.getPlacePhotoBlob(randomPlace.thirdPhoto);
+    await saveFile('./sample_place/thirdPhoto.jpg', thirdPhotoBlob);
+}
 
-console.log(place.blurb);
+let mapPhotoBlob = await randomPlace.getPlaceAerialPhotoBlob("roadmap", 5, true);
+await saveFile('./sample_place/mapPhoto.jpg', mapPhotoBlob)
+await saveFile('./sample_place/blurb.txt', randomPlace.blurb);
+
+console.log(randomPlace.blurb);

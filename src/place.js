@@ -1,8 +1,9 @@
 import fetch from "node-fetch";
 import {googleAPIKey} from '../keys/key.js';
+import { shuffleArray } from "./saveFile.js";
 
 export class Place {
-    static HASHTAGS = ["#parks", "#nature", "#outdoors", "#travel", "#landscape", "#satellite"];
+    static HASHTAGS = "#parks #nature #outdoors #travel #landscape #satellite";
     constructor(asyncPlaceJSON) {
         if(typeof(asyncPlaceJSON) === "undefined") {
             throw new Error("Cannot be called directly");
@@ -10,10 +11,9 @@ export class Place {
         this.place_id = asyncPlaceJSON["place_id"];
         this.name = asyncPlaceJSON["name"];
         this.query = asyncPlaceJSON["query"];
-        this.top_photo_reference = asyncPlaceJSON["top_photo_reference"];
-        this.top_source = asyncPlaceJSON["top_source"];
-        this.random_photo_reference = asyncPlaceJSON["rand_photo_reference"];
-        this.rand_source = asyncPlaceJSON["rand_source"];
+        this.firstPhoto = asyncPlaceJSON["first_photo"];
+        this.secondPhoto = asyncPlaceJSON["second_photo"];
+        this.thirdPhoto = asyncPlaceJSON["third_photo"];
         this.rating = asyncPlaceJSON["rating"];
         this.user_ratings_total = asyncPlaceJSON["user_ratings_total"];
         this.formatted_address = asyncPlaceJSON["formatted_address"];
@@ -21,43 +21,67 @@ export class Place {
         this.lng = asyncPlaceJSON["lng"];
         this.blurb = this.name + "\n"
         + this.query + "\n"
-        + (this.rating + "/5 stars (" + this.user_ratings_total + " ratings)\n")
-        + Place.HASHTAGS.join(" ");
-        
+        + (this.rating + "/5 stars (" + this.user_ratings_total + " ratings)\n");
+        if(this.blurb.length + Place.HASHTAGS.length < 180) {
+            this.blurb = this.blurb + Place.HASHTAGS;
+        }
     }
 
     static async buildRandomPlace(query, placeType) {
-        try {
-            let url = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=" + googleAPIKey + "&query=" + query + "&type=" + placeType;
-            let response = await fetch(url, {method: "GET"});
-            if(response.ok) {
-                let responseJSON = await response.json();
-                return new Place(await Place.getRandomPlaceData(query, responseJSON));
+        let url = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=" + googleAPIKey + "&query=" + query + "&type=" + placeType;
+        let response = await fetch(url, {method: "GET"});
+        if(response.ok) {
+            let responseJSON = await response.json();
+            if(responseJSON["status"] == "ZERO_RESULTS") {
+                throw new ReferenceError("No results for place query");
             }
-            else {
-                throw new Error("Could not receive place data!");
-            }
+            return new Place(await Place.getRandomPlaceData(query, responseJSON));
         }
-        catch (error) {
-            console.error(error);
+        else {
+            throw new URIError("Could not receive place data!");
         }
     }
 
     static async getRandomPlaceData(query, placeJSON) {
         let randomResultIndex = Math.floor(Math.random() * placeJSON["results"].length);
-        while(true) {
+        var count = 0
+        while(count < 10) {
             if("photos" in placeJSON["results"][randomResultIndex]) {
-                break
+                break;
             }
             else {
                 randomResultIndex = Math.floor(Math.random() * placeJSON["results"].length);
+                count++;
             }
         }
         let randomPlace = placeJSON["results"][randomResultIndex];
         let placePhotos = await Place.getPlacePhotoReferences(randomPlace["place_id"]);
-        let randomPhotoIndex = Math.floor(Math.random() * placePhotos.length);
+        
+        let numPhotosArray = [];
+        for(let i = 0; i < placePhotos.length; i++) {
+            numPhotosArray.push(i);
+        }
+        shuffleArray(numPhotosArray);
+        let firstPhoto = null;
+        let secondPhoto = null;
+        let thirdPhoto = null;
+        if(numPhotosArray.length > 2) {
+            firstPhoto = placePhotos[numPhotosArray[0]]["photo_reference"];
+            secondPhoto = placePhotos[numPhotosArray[1]]["photo_reference"];
+            thirdPhoto = placePhotos[numPhotosArray[2]]["photo_reference"];
+        }
+        else if(numPhotosArray.length > 1) {
+            firstPhoto = placePhotos[numPhotosArray[0]]["photo_reference"];
+            secondPhoto = placePhotos[numPhotosArray[1]]["photo_reference"];
+            thirdPhoto = null;
+        }
+        else {
+            firstPhoto = placePhotos[numPhotosArray[0]]["photo_reference"];
+            secondPhoto = null;
+            thirdPhoto = null;
+        }
 
-        return {
+        let data = {
             place_id: randomPlace["place_id"],
             query: query,
             name: randomPlace["name"],
@@ -66,17 +90,11 @@ export class Place {
             formatted_address: randomPlace["formatted_address"],
             lat: randomPlace["geometry"]["location"]["lat"],
             lng: randomPlace["geometry"]["location"]["lng"],
-            top_photo_reference: randomPlace["photos"][0]["photo_reference"],
-            top_source: Place.#parseSource(randomPlace["photos"][0]["html_attributions"][0]),
-            rand_photo_reference: placePhotos[randomPhotoIndex]["photo_reference"],
-            rand_source: Place.#parseSource(placePhotos[randomPhotoIndex]["html_attributions"][0])
+            first_photo: firstPhoto,
+            second_photo: secondPhoto,
+            third_photo: thirdPhoto
         };
-    }
-
-    static #parseSource(html_tag) {
-        let link = html_tag.substring(html_tag.indexOf("href") + 6, html_tag.indexOf(">") - 1);
-        let photographer = html_tag.substring(html_tag.indexOf(">") + 1, html_tag.indexOf("</"));
-        return "Source: " + photographer + " - " + link;
+        return data
     }
 
     static async getPlacePhotoReferences(place_id) {
