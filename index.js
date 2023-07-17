@@ -53,8 +53,9 @@ async function getRandomPark(city, state) {
     if(response.ok) {
         let parkJSON = await response.json();
         if(parkJSON["status"] == "ZERO_RESULTS") {
-            throw new ReferenceError("No results for place query");
+            throw new ReferenceError("No results for place query at " + city + ", " + state);
         }
+        console.log(parkJSON);
         return parkJSON;
         // return await getRandomPlaceData(city, state, responseJSON);
     }
@@ -189,11 +190,12 @@ async function sendTweet() {
     }
     mediaIds.push(await rwClient.v1.uploadMedia(mapPhotoBuffer, {mimeType: 'image/jpg', chunkLength: 50000}));
 
+    let cityState = park["plus_code"]["compound_code"].substring(park["plus_code"]["compound_code"].indexOf(" ") + 1);
     let blurb = park["name"] + "\n"
-        + city + ", " + state + "\n"
+        + cityState + "\n"
         + (park["rating"] + "/5 stars (" + park["user_ratings_total"] + " ratings)\n");
 
-    await rwClient.v2.tweet(blurb, {media: {media_ids: mediaIds}});
+    // await rwClient.v2.tweet(blurb, {media: {media_ids: mediaIds}});
 }
 
 await sendTweet();
