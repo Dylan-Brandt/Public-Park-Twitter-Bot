@@ -51,13 +51,15 @@ async function getRandomPark(city, state) {
     + "&type=park";
     let response = await fetch(url, {method: "GET"});
     if(response.ok) {
-        let parkJSON = await response.json();
-        if(parkJSON["status"] == "ZERO_RESULTS") {
+        let parksJSON = await response.json();
+        let park;
+        if(parksJSON["status"] == "ZERO_RESULTS") {
             throw new ReferenceError("No results for place query at " + city + ", " + state);
         }
-        console.log(parkJSON);
-        return parkJSON;
-        // return await getRandomPlaceData(city, state, responseJSON);
+        do {
+            park = parksJSON["results"][Math.floor(Math.random() * parksJSON["results"].length)];
+        } while(!park["photos"]);
+        return park;
     }
     else {
         throw new URIError("Could not receive place data!");
@@ -174,11 +176,7 @@ async function sendTweet() {
 
     let state = getRandomState();
     let city =  await getRandomCity(state);
-    let parks = await getRandomPark(city, state);
-    let park;
-    do {
-        park = parks["results"][Math.floor(Math.random() * parks["results"].length)];
-    } while(!park["photos"]);
+    let park = await getRandomPark(city, state);
     let parkPhotoReferences = await getPlacePhotoReferences(park["place_id"]);
     let parkPhotoBuffers = await getPlacePhotoBuffers(parkPhotoReferences);
     let mapPhotoBuffer = await getPlaceAerialPhotoBuffer("roadmap", 6, park["geometry"]["location"]["lat"], park["geometry"]["location"]["lng"], true);
@@ -195,7 +193,7 @@ async function sendTweet() {
         + cityState + "\n"
         + (park["rating"] + "/5 stars (" + park["user_ratings_total"] + " ratings)\n");
 
-    // await rwClient.v2.tweet(blurb, {media: {media_ids: mediaIds}});
+    await rwClient.v2.tweet(blurb, {media: {media_ids: mediaIds}});
 }
 
 await sendTweet();
