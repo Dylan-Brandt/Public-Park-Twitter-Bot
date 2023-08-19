@@ -1,0 +1,36 @@
+service: everydayparks
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  memorySize: 512
+  timeout: 60
+
+functions:
+  sendRandomPark:
+    handler: handler.sendRandomPark
+    events:
+      - schedule: cron(30 * * * ? *)
+  sendRandomNationalPark:
+    handler: handler.sendRandomNationalPark
+    events:
+      - schedule: cron(0 12 ? * SUN *)
+  sendRandomNationalForest:
+    handler: handler.sendRandomNationalForest
+    events:
+      - schedule: cron(0 12 ? * MON *)
+  sendRandomNationalMonument:
+    handler: handler.sendRandomNationalMonument
+    events:
+      - schedule: cron(0 12 ? * TUE *)
+  sendRandomProtectedArea:
+    handler: handler.sendRandomProtectedArea
+    events:
+      - schedule: cron(0 12 ? * THU *)
+  sendRandomStatePark:
+    handler: handler.sendRandomStatePark
+    events:
+      - schedule: cron(0 11 * * ? *)
