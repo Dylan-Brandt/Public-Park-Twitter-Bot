@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 
 import * as keys from './keys/key.js';
 
-const STATES = ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Puerto Rico','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
+export const STATES = ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Puerto Rico','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
 
 async function getCities(state) {
     try {
@@ -23,12 +23,12 @@ async function getCities(state) {
     }
 }
 
-function getRandomState() {
+export function getRandomState() {
     let randomStateIndex = Math.floor(Math.random() * STATES.length);
     return STATES[randomStateIndex];
 }
 
-async function getRandomCity(stateParam = undefined) {
+export async function getRandomCity(stateParam = undefined) {
     let state;
     if(stateParam) {
         state = stateParam;
@@ -45,7 +45,7 @@ async function getRandomCity(stateParam = undefined) {
     }
 }
 
-async function getRandomPark(city, state) {
+export async function getRandomPark(city, state) {
     let url = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=" + keys.googleAPIKey
     + "&query=" + city + ", " + state
     + "&type=park";
@@ -66,7 +66,28 @@ async function getRandomPark(city, state) {
     }
 }
 
-async function getPlacePhotoReferences(place_id) {
+export async function getSpecificPark(query) {
+    let url = "https://maps.googleapis.com/maps/api/place/textsearch/json?key=" + keys.googleAPIKey
+    + "&query=" + query;
+
+    let response = await fetch(url, {method: "GET"});
+    if(response.ok) {
+        let parksJSON = await response.json();
+        let park;
+        if(parksJSON["status"] == "ZERO_RESULTS") {
+            throw new ReferenceError("No results for place query at " + city + ", " + state);
+        }
+        do {
+            park = parksJSON["results"][Math.floor(Math.random() * parksJSON["results"].length)];
+        } while(!park["photos"]);
+        return park;
+    }
+    else {
+        throw new URIError("Could not receive place data!");
+    }
+}
+
+export async function getPlacePhotoReferences(place_id) {
     try {
         let url = "https://maps.googleapis.com/maps/api/place/details/json"
         + "?key=" + keys.googleAPIKey
@@ -96,8 +117,8 @@ function shuffleArray(array) {
     }
 }
 
-// Get three or less random photos from the references
-async function getPlacePhotoBuffers(photo_references) {
+// Get four or less random photos from the references
+export async function getPlacePhotoBuffers(photo_references) {
     let randomIndexes = [];
     let numPhotosToFetch;
     let buffers = [];
@@ -105,8 +126,8 @@ async function getPlacePhotoBuffers(photo_references) {
         randomIndexes.push(i);
     }
     shuffleArray(randomIndexes);
-    if(randomIndexes.length > 3) {
-        numPhotosToFetch = 3;
+    if(randomIndexes.length > 4) {
+        numPhotosToFetch = 4;
     }
     else {
         numPhotosToFetch = randomIndexes.length;
@@ -136,7 +157,41 @@ async function getPlacePhotoBuffers(photo_references) {
     return buffers;
 }
 
-async function getPlaceAerialPhotoBuffer(maptype, zoom, lat, lng, markers=false) {
+export async function getManyPlacePhotoBuffers(photo_references) {
+    let randomIndexes = [];
+    let numPhotosToFetch;
+    let buffers = [];
+    for(let i = 0; i < photo_references.length; i++) {
+        randomIndexes.push(i);
+    }
+    shuffleArray(randomIndexes);
+    numPhotosToFetch = randomIndexes.length;
+    
+    for(let i = 0; i < numPhotosToFetch; i++) {
+        try {
+            let url = "https://maps.googleapis.com/maps/api/place/photo?key="
+            + keys.googleAPIKey
+            + "&photo_reference=" + photo_references[randomIndexes[i]]["photo_reference"]
+            + "&maxwidth=1600";
+            let response = await fetch(url, {method: "GET", accept: "image/*"});
+            if(response.ok) {
+                let responseBlob = await response.blob();
+                let responseArrayBuffer = await responseBlob.arrayBuffer();
+                let responseBuffer = Buffer.from(responseArrayBuffer, 'binary');
+                buffers.push(responseBuffer);
+            }
+            else {
+                throw new Error("Could not receive place photo!");
+            }
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+    return buffers;
+}
+
+export async function getPlaceAerialPhotoBuffer(maptype, zoom, lat, lng, markers=false) {
     try {
         let coordinates = lat + "," + lng;
         let url = "https://maps.googleapis.com/maps/api/staticmap?key="
@@ -164,7 +219,16 @@ async function getPlaceAerialPhotoBuffer(maptype, zoom, lat, lng, markers=false)
     }
 }
 
-async function sendTweet() {
+export async function getPlaceShareLink(lat, lng, place_id) {
+    let url = "https://www.google.com/maps/search/?api=1&query="
+    + lat + "," + lng 
+    + "&query_place_id=" + place_id;
+    
+    let response = await fetch(url, {method: "GET"});
+    console.log(response);
+}
+
+export function getTwitterClient() {
     const userClient = new TwitterApi({
         appKey: keys.consumerKey,
         appSecret: keys.consumerSecret,
@@ -172,28 +236,29 @@ async function sendTweet() {
         accessSecret: keys.accessSecret,
     });
 
-    const rwClient = userClient.readWrite;
-
-    let state = getRandomState();
-    let city =  await getRandomCity(state);
-    let park = await getRandomPark(city, state);
-    let parkPhotoReferences = await getPlacePhotoReferences(park["place_id"]);
-    let parkPhotoBuffers = await getPlacePhotoBuffers(parkPhotoReferences);
-    let mapPhotoBuffer = await getPlaceAerialPhotoBuffer("roadmap", 6, park["geometry"]["location"]["lat"], park["geometry"]["location"]["lng"], true);
-
-    // Upload photos
-    let mediaIds = [];
-    for(let i = 0; i < parkPhotoBuffers.length; i++) {
-        mediaIds.push(await rwClient.v1.uploadMedia(parkPhotoBuffers[i], {mimeType: 'image/jpg', chunkLength: 50000}));
-    }
-    mediaIds.push(await rwClient.v1.uploadMedia(mapPhotoBuffer, {mimeType: 'image/jpg', chunkLength: 50000}));
-
-    let cityState = park["plus_code"]["compound_code"].substring(park["plus_code"]["compound_code"].indexOf(" ") + 1);
-    let blurb = park["name"] + "\n"
-        + cityState + "\n"
-        + (park["rating"] + "/5 stars (" + park["user_ratings_total"] + " ratings)\n");
-
-    await rwClient.v2.tweet(blurb, {media: {media_ids: mediaIds}});
+    return userClient.readWrite;
 }
 
-await sendTweet();
+export async function getWikipediaDescription(title, state=null) {
+    const wikiResponse = await fetch("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=" + title);
+    if(wikiResponse.ok) {
+        const json = await wikiResponse.json();
+        const pages = json["query"]["pages"];
+        const extract = pages[Object.keys(pages)[0]]["extract"];
+        if(!extract) return null;
+        if((extract.includes("may refer to") || extract.includes("can be one of several places")) && state) {
+            const wikiStateResponse = await fetch("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=" + title + " (" + state + ")");
+            if(wikiStateResponse.ok) {
+                const jsonState = await wikiStateResponse.json();
+                const pagesState = jsonState["query"]["pages"];
+                const extractState = pagesState[Object.keys(pagesState)[0]]["extract"];
+                return extractState.replaceAll("\n", "");
+            }
+        }
+        else {
+            return extract.replaceAll("\n", "");
+        }
+    }
+    return null;
+}
+
