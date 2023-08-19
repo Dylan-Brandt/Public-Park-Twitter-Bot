@@ -239,26 +239,3 @@ export function getTwitterClient() {
     return userClient.readWrite;
 }
 
-export async function getWikipediaDescription(title, state=null) {
-    const wikiResponse = await fetch("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=" + title);
-    if(wikiResponse.ok) {
-        const json = await wikiResponse.json();
-        const pages = json["query"]["pages"];
-        const extract = pages[Object.keys(pages)[0]]["extract"];
-        if(!extract) return null;
-        if((extract.includes("may refer to") || extract.includes("can be one of several places")) && state) {
-            const wikiStateResponse = await fetch("https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=" + title + " (" + state + ")");
-            if(wikiStateResponse.ok) {
-                const jsonState = await wikiStateResponse.json();
-                const pagesState = jsonState["query"]["pages"];
-                const extractState = pagesState[Object.keys(pagesState)[0]]["extract"];
-                return extractState.replaceAll("\n", "");
-            }
-        }
-        else {
-            return extract.replaceAll("\n", "");
-        }
-    }
-    return null;
-}
-

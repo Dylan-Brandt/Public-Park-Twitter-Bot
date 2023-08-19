@@ -1,10 +1,10 @@
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync } from 'fs';
 
 import { getTwitterClient, getSpecificPark, getPlacePhotoReferences, getPlaceAerialPhotoBuffer, getManyPlacePhotoBuffers } from './index.js';
 
 export async function sendStateParkTweet(stateFile) {
     const rwClient = getTwitterClient();
-    const data = readFileSync(["./wikipedia_data/state_parks/json/processed/", stateFile].join(""));
+    const data = readFileSync(["./wikipedia_data/state_parks/", stateFile].join(""));
     const state_parks = JSON.parse(data);
     const keys = Object.keys(state_parks);
 
@@ -25,7 +25,7 @@ export async function sendStateParkTweet(stateFile) {
     const googleData = await getSpecificPark(wikiData["Name"]);
     const photoReferences = await getPlacePhotoReferences(googleData["place_id"]);
     const photoBuffers = await getManyPlacePhotoBuffers(photoReferences);
-    const aerialPhotoBuffer = await getPlaceAerialPhotoBuffer("roadmap", 6, googleData["geometry"]["location"]["lat"], googleData["geometry"]["location"]["lng"], true);
+    // const aerialPhotoBuffer = await getPlaceAerialPhotoBuffer("roadmap", 6, googleData["geometry"]["location"]["lat"], googleData["geometry"]["location"]["lng"], true);
 
     let tweets = [];
 
@@ -46,12 +46,11 @@ export async function sendStateParkTweet(stateFile) {
     tweets.push({text: leadBlurb, media: {media_ids: leadMediaIds}});
 
     let threadMediaIds = [];
-    let threadBlurbs = [];
     for(let i = 0; i < photoBuffers.length; i++) {
         threadMediaIds.push([await rwClient.v1.uploadMedia(photoBuffers[i], {mimeType: 'image/jpg', chunkLength: 50000})]);
     }
 
-    let numThreadTweets = wikiChunks.length < 9 ? wikiChunks.length : 9
+    let numThreadTweets = wikiChunks.length < 6 ? wikiChunks.length : 6
 
     for(let i = 0; i < numThreadTweets; i++) {
         if(i < threadMediaIds.length) {
@@ -67,17 +66,7 @@ export async function sendStateParkTweet(stateFile) {
     + "\n\n More photos: \n\n"
     + `https://www.google.com/maps/search/?api=1&query=${googleData["geometry"]["location"]["lat"]},${googleData["geometry"]["location"]["lng"]}&query_place_id=${googleData["place_id"]}`]);
 
-    console.log("Read more:\n\n" + "https://en.wikipedia.org/wiki/"
-    + wikiData["Name"].replaceAll(" ", "_")
-    + "\n\nMore photos: \n\n"
-    + `https://www.google.com/maps/search/?api=1&query=${googleData["geometry"]["location"]["lat"]},${googleData["geometry"]["location"]["lng"]}&query_place_id=${googleData["place_id"]}`);
-
     console.log(leadBlurb);
-    // console.log(threadBlurbs);
 
     await rwClient.v2.tweetThread(tweets);
 }
-
-let states = readdirSync("./wikipedia_data/state_parks/json/processed");
-let randomState = states[Math.floor(Math.random() * states.length)];
-sendStateParkTweet(randomState);
