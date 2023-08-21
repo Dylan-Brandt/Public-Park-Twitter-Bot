@@ -25,18 +25,18 @@ export async function sendStateParkTweet(stateFile) {
     const googleData = await getSpecificPark(wikiData["Name"]);
     const photoReferences = await getPlacePhotoReferences(googleData["place_id"]);
     const photoBuffers = await getManyPlacePhotoBuffers(photoReferences);
-    // const aerialPhotoBuffer = await getPlaceAerialPhotoBuffer("roadmap", 6, googleData["geometry"]["location"]["lat"], googleData["geometry"]["location"]["lng"], true);
+    const aerialPhotoBuffer = await getPlaceAerialPhotoBuffer("roadmap", 6, googleData["geometry"]["location"]["lat"], googleData["geometry"]["location"]["lng"], true);
 
     let tweets = [];
 
     let leadMediaIds = [];
-    if(photoBuffers.length < 5) {
+    if(photoBuffers.length < 4) {
         for(let i = 0; i < photoBuffers.length; i++) {
             leadMediaIds.push(await rwClient.v1.uploadMedia(photoBuffers.pop(i), {mimeType: 'image/jpg', chunkLength: 50000}));
         }
     }
     else {
-        for(let i = 0; i < 4; i++) {
+        for(let i = 0; i < 3; i++) {
             leadMediaIds.push(await rwClient.v1.uploadMedia(photoBuffers.pop(i), {mimeType: 'image/jpg', chunkLength: 50000}));
         }
     }
@@ -50,21 +50,24 @@ export async function sendStateParkTweet(stateFile) {
         threadMediaIds.push([await rwClient.v1.uploadMedia(photoBuffers[i], {mimeType: 'image/jpg', chunkLength: 50000})]);
     }
 
-    let numThreadTweets = wikiChunks.length < 6 ? wikiChunks.length : 6
+    let numThreadTweets = wikiChunks.length < 7 ? wikiChunks.length : 7;
 
     for(let i = 0; i < numThreadTweets; i++) {
         if(i < threadMediaIds.length) {
-            tweets.push({text: wikiChunks[i], media: {media_ids: threadMediaIds[i]}})
+            tweets.push({text: wikiChunks[i], media: {media_ids: threadMediaIds[i]}});
         }
         else {
             tweets.push(wikiChunks[i]);
         }
     }
 
-    tweets.push("Read more:\n\n" + "https://en.wikipedia.org/wiki/"
-    + wikiData["Name".replaceAll(" ", "_")
+    let tailBlurb = "Read more:\n\n" + "https://en.wikipedia.org/wiki/"
+    + wikiData["Name"].replaceAll(" ", "_")
     + "\n\n More photos: \n\n"
-    + `https://www.google.com/maps/search/?api=1&query=${googleData["geometry"]["location"]["lat"]},${googleData["geometry"]["location"]["lng"]}&query_place_id=${googleData["place_id"]}`]);
+    + `https://www.google.com/maps/search/?api=1&query=${googleData["geometry"]["location"]["lat"]},${googleData["geometry"]["location"]["lng"]}&query_place_id=${googleData["place_id"]}`
+    let tailMediaIds = [];
+    tailMediaIds.push(await rwClient.v1.uploadMedia(aerialPhotoBuffer, {mimeType: 'image/jpg', chunkLength: 50000}));
+    tweets.push({text: tailBlurb, media: {media_ids: tailMediaIds}});
 
     console.log(leadBlurb);
 

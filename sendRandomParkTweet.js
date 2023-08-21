@@ -21,7 +21,8 @@ export async function sendRandomParkTweet() {
     let cityState = park["plus_code"]["compound_code"].substring(park["plus_code"]["compound_code"].indexOf(" ") + 1);
     let blurb = park["name"] + "\n"
         + cityState + "\n"
-        + (park["rating"] + "/5 stars (" + park["user_ratings_total"] + " ratings)\n");
+        + (park["rating"] + "/5 stars (" + park["user_ratings_total"] + " ratings)\n")
+        + `https://www.google.com/maps/search/?api=1&query=${park["geometry"]["location"]["lat"]},${park["geometry"]["location"]["lng"]}&query_place_id=${park["place_id"]}`;
 
     await rwClient.v2.tweet(blurb, {media: {media_ids: mediaIds}});
 }
