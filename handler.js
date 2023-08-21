@@ -42,7 +42,7 @@ export async function sendRandomProtectedArea(event) {
 }
 
 export async function sendRandomStatePark(event) {
-    let states = readdirSync("./wikipedia_data/state_parks/json/processed");
+    let states = readdirSync("./wikipedia_data/state_parks");
     let randomState = states[Math.floor(Math.random() * states.length)];
     await sendStateParkTweet(randomState);
 }
