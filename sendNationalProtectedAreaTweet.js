@@ -5,11 +5,11 @@ import { getTwitterClient, getSpecificPark, getPlacePhotoReferences, getPlaceAer
 export async function sendNationalProtectedAreaTweet(parkType, area=null) {
     const rwClient = getTwitterClient();
     const data = readFileSync(["./wikipedia_data/national_areas/", parkType.replaceAll(" ", "_").toLowerCase(), "s.json"].join(""));
-    const national_parks = JSON.parse(data);
-    const keys = Object.keys(national_parks);
+    const areas_json = JSON.parse(data);
+    const keys = Object.keys(areas_json);
     let key = keys[Math.floor(Math.random() * keys.length)];
     console.log(key);
-    const wikiData = national_parks[key];
+    const wikiData = areas_json[key];
     const wikiChunks = wikiData["Sentence chunks"];
     
     const googleData = await getSpecificPark(wikiData["Name"] + ` ${parkType}`);

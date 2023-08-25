@@ -75,7 +75,7 @@ export async function getSpecificPark(query) {
         let parksJSON = await response.json();
         let park;
         if(parksJSON["status"] == "ZERO_RESULTS") {
-            throw new ReferenceError("No results for place query at " + city + ", " + state);
+            throw new ReferenceError("No results for place query " + query);
         }
         do {
             park = parksJSON["results"][Math.floor(Math.random() * parksJSON["results"].length)];
