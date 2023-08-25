@@ -63,7 +63,7 @@ export async function sendStateParkTweet(stateFile) {
 
     let tailBlurb = "Read more:\n\n" + "https://en.wikipedia.org/wiki/"
     + wikiData["Name"].replaceAll(" ", "_")
-    + "\n\n More photos: \n\n"
+    + "\n\nMore photos: \n\n"
     + `https://www.google.com/maps/search/?api=1&query=${googleData["geometry"]["location"]["lat"]},${googleData["geometry"]["location"]["lng"]}&query_place_id=${googleData["place_id"]}`
     let tailMediaIds = [];
     tailMediaIds.push(await rwClient.v1.uploadMedia(aerialPhotoBuffer, {mimeType: 'image/jpg', chunkLength: 50000}));
