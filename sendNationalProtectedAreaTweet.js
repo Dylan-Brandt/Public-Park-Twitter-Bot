@@ -54,7 +54,7 @@ export async function sendNationalProtectedAreaTweet(parkType, area=null) {
     }
 
     let tailBlurb = "Read more:\n\n" + "https://en.wikipedia.org/wiki/"
-    + wikiData["Name"].replaceAll(" ", "_")
+    + wikiData["Name"].replaceAll(" ", "_") + "_" + parkType.replaceAll(" ", "_")
     + "\n\n More photos: \n\n"
     + `https://www.google.com/maps/search/?api=1&query=${googleData["geometry"]["location"]["lat"]},${googleData["geometry"]["location"]["lng"]}&query_place_id=${googleData["place_id"]}`;
     let tailMediaIds = [];

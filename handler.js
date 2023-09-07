@@ -37,7 +37,7 @@ export async function sendRandomProtectedArea(event) {
         await sendNationalProtectedAreaTweet("National Grassland", "national protected area");
     }
     else if(rand < 65) {
-        await sendNationalProtectedAreaTweet("National Grassland", "national protected area");
+        await sendNationalProtectedAreaTweet("National Historic Trail", "national protected area");
     }
 }
 
