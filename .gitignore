@@ -2,3 +2,6 @@ everydayparks.zip
 keys/
 scripts/
 wikipedia_data/
+node_modules/
+test.py
+package-lock.json
