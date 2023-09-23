@@ -3,6 +3,7 @@ import { readdirSync } from "fs";
 import { sendRandomParkTweet } from "./sendRandomParkTweet.js";
 import { sendNationalProtectedAreaTweet } from "./sendNationalProtectedAreaTweet.js";
 import { sendStateParkTweet } from "./sendStateParkTweet.js";
+import { sendNationalHistoricLandmarkTweet } from "./sendNationalHistoricLandmarkTweet.js";
 
 'use strict';
 
@@ -45,4 +46,10 @@ export async function sendRandomStatePark(event) {
     let states = readdirSync("./wikipedia_data/state_parks");
     let randomState = states[Math.floor(Math.random() * states.length)];
     await sendStateParkTweet(randomState);
+}
+
+export async function sendRandomHistoricLandmark(event) {
+    let states = readdirSync("./wikipedia_data/state_parks");
+    let randomState = states[Math.floor(Math.random() * states.length)];
+    await sendNationalHistoricLandmarkTweet(randomState);
 }

@@ -40,3 +40,8 @@ functions:
     events:
       - schedule: cron(0 16 * * ? *)
     maximumRetryAttempts: 0
+  sendRandomHistoricLandmark:
+    handler: handler.sendRandomHistoricLandmark
+    events:
+      - schedule: cron(0 18 * * ? *)
+    maximumRetryAttempts: 0
