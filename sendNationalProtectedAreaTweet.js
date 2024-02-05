@@ -33,7 +33,7 @@ export async function sendNationalProtectedAreaTweet(parkType, area=null) {
     // leadMediaIds.push(await rwClient.v1.uploadMedia(photoBuffers.pop(0), {mimeType: 'image/jpg', chunkLength: 50000}));
     // leadMediaIds.push(await rwClient.v1.uploadMedia(aerialPhotoBuffer, {mimeType: 'image/jpg', chunkLength: 50000}));
     let leadBlurb = `The ${(area ? area : parkType).toLowerCase()} of the week is ` + wikiData["Name"] + ` ${parkType}!\n\n`
-    + (googleData["rating"] + "/5 stars (" + googleData["user_ratings_total"] + " ratings)\n\n🧵 Thread below");
+    + (googleData["rating"] + "/5 stars (" + googleData["user_ratings_total"] + " ratings)\n\n wiki🧵 below");
     tweets.push({text: leadBlurb, media: {media_ids: leadMediaIds}});
 
     let threadMediaIds = [];

@@ -22,7 +22,13 @@ export async function sendNationalHistoricLandmarkTweet(stateFile) {
     }
     
     console.log(key);
+    console.log(stateFile.replace(".json", ""));
     const googleData = await getSpecificPark(wikiData["Name"]);
+    console.log("wiki data: " + wikiData);
+    console.log("google data: " + googleData);
+    if(googleData.plus_code && googleData.plus_code.compound_code && !googleData.plus_code.compound_code.toLowerCase().includes(stateFile.replace(".json", "").replace("_", " ").toLowerCase())) {
+        throw new Error("Google location doesn't match wiki data");
+    }
     const photoReferences = await getPlacePhotoReferences(googleData["place_id"]);
     const photoBuffers = await getManyPlacePhotoBuffers(photoReferences);
     const aerialPhotoBuffer = await getPlaceAerialPhotoBuffer("roadmap", 6, googleData["geometry"]["location"]["lat"], googleData["geometry"]["location"]["lng"], true);
@@ -42,7 +48,7 @@ export async function sendNationalHistoricLandmarkTweet(stateFile) {
     }
     // leadMediaIds.push(await rwClient.v1.uploadMedia(aerialPhotoBuffer, {mimeType: 'image/jpg', chunkLength: 50000}));
     let leadBlurb = 'Today\'s national historic landmark highlight is ' + wikiData["Name"] + `, located in ${stateFile.replaceAll("_", " ").replace(".json", "")}.\n\n`
-    + (googleData["rating"] + "/5 stars (" + googleData["user_ratings_total"] + " ratings)\n\n🧵 Thread below");
+    + (googleData["rating"] + "/5 stars (" + googleData["user_ratings_total"] + " ratings)\n\n wiki 🧵 below");
     tweets.push({text: leadBlurb, media: {media_ids: leadMediaIds}});
 
     let threadMediaIds = [];

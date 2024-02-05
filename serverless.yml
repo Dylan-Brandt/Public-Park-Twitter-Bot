@@ -14,34 +14,34 @@ functions:
     handler: handler.sendRandomPark
     events:
       - schedule: cron(30 * * * ? *)
-    maximumRetryAttempts: 0
+    maximumRetryAttempts: 1
   sendRandomNationalPark:
     handler: handler.sendRandomNationalPark
     events:
       - schedule: cron(0 17 ? * SUN *)
-    maximumRetryAttempts: 0
+    maximumRetryAttempts: 1
   sendRandomNationalForest:
     handler: handler.sendRandomNationalForest
     events:
       - schedule: cron(0 17 ? * MON *)
-    maximumRetryAttempts: 0
+    maximumRetryAttempts: 1
   sendRandomNationalMonument:
     handler: handler.sendRandomNationalMonument
     events:
       - schedule: cron(0 17 ? * TUE *)
-    maximumRetryAttempts: 0
+    maximumRetryAttempts: 1
   sendRandomProtectedArea:
     handler: handler.sendRandomProtectedArea
     events:
       - schedule: cron(0 17 ? * THU *)
-    maximumRetryAttempts: 0
+    maximumRetryAttempts: 1
   sendRandomStatePark:
     handler: handler.sendRandomStatePark
     events:
       - schedule: cron(0 16 * * ? *)
-    maximumRetryAttempts: 0
+    maximumRetryAttempts: 1
   sendRandomHistoricLandmark:
     handler: handler.sendRandomHistoricLandmark
     events:
       - schedule: cron(0 18 * * ? *)
-    maximumRetryAttempts: 0
+    maximumRetryAttempts: 1
